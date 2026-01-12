@@ -223,21 +223,26 @@ export default function AuditPage() {
     if (!auditId || !business || scanStarted) return
     setScanStarted(true)
 
+    var businessName = business.name
+    var businessRating = business.rating
+    var businessReviewCount = business.review_count
+    var businessWebsite = business.website
+
     async function runScan() {
       setScanning(true)
-      
+
       try {
         await new Promise(function(resolve) { setTimeout(resolve, 500) })
         setDirectories(function(prev) {
           return prev.map(function(dir) {
             if (dir.directory === "Google Business") {
-              return { ...dir, status: "found" as const, found_rating: business?.rating || undefined }
+              return { ...dir, status: "found" as const, found_rating: businessRating || undefined }
             }
             return dir
           })
         })
 
-        var simulatedSocial = generateSocialMetrics(business.name)
+        var simulatedSocial = generateSocialMetrics(businessName)
         
         await new Promise(function(resolve) { setTimeout(resolve, 500) })
         setDirectories(function(prev) {
@@ -259,15 +264,15 @@ export default function AuditPage() {
           })
         })
 
-        var metaAdLibraryUrl = "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=MT&q=" + 
-          encodeURIComponent(business.name) + "&search_type=keyword_unordered"
+        var metaAdLibraryUrl = "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=MT&q=" +
+          encodeURIComponent(businessName) + "&search_type=keyword_unordered"
         
         setSocialMetrics({
           ...simulatedSocial,
           meta_ad_library_url: metaAdLibraryUrl
         })
 
-        if (business.website) {
+        if (businessWebsite) {
           setWebsiteMetrics(function(prev) { return { ...prev, analyzing: true } })
           setDirectories(function(prev) {
             return prev.map(function(dir) {
@@ -282,7 +287,7 @@ export default function AuditPage() {
             var websiteResponse = await fetch("/api/website-analysis", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ url: business.website })
+              body: JSON.stringify({ url: businessWebsite })
             })
 
             var websiteData = await websiteResponse.json()
@@ -302,10 +307,10 @@ export default function AuditPage() {
             setDirectories(function(prev) {
               return prev.map(function(dir) {
                 if (dir.directory === "Website") {
-                  return { 
-                    ...dir, 
+                  return {
+                    ...dir,
                     status: "found" as const,
-                    external_url: business.website || undefined
+                    external_url: businessWebsite || undefined
                   }
                 }
                 return dir
@@ -313,7 +318,7 @@ export default function AuditPage() {
             })
 
             var calculatedScore = calculateVisibilityScore(
-              { rating: business.rating, review_count: business.review_count },
+              { rating: businessRating, review_count: businessReviewCount },
               simulatedSocial,
               realWebsiteMetrics
             )
@@ -321,7 +326,7 @@ export default function AuditPage() {
 
           } catch (error) {
             console.error("Website analysis failed:", error)
-            var fallbackWebsite = generateWebsiteMetrics(business.name)
+            var fallbackWebsite = generateWebsiteMetrics(businessName)
             setWebsiteMetrics({
               accessible: true,
               has_ssl: fallbackWebsite.has_ssl,
@@ -332,14 +337,14 @@ export default function AuditPage() {
             setDirectories(function(prev) {
               return prev.map(function(dir) {
                 if (dir.directory === "Website") {
-                  return { ...dir, status: "found" as const, external_url: business.website || undefined }
+                  return { ...dir, status: "found" as const, external_url: businessWebsite || undefined }
                 }
                 return dir
               })
             })
 
             var scoreWithFallback = calculateVisibilityScore(
-              { rating: business.rating, review_count: business.review_count },
+              { rating: businessRating, review_count: businessReviewCount },
               simulatedSocial,
               { accessible: true, has_ssl: fallbackWebsite.has_ssl, speed_score: fallbackWebsite.speed_score, seo_score: fallbackWebsite.seo_score }
             )
@@ -356,7 +361,7 @@ export default function AuditPage() {
           })
 
           var scoreNoWebsite = calculateVisibilityScore(
-            { rating: business.rating, review_count: business.review_count },
+            { rating: businessRating, review_count: businessReviewCount },
             simulatedSocial,
             { accessible: false, has_ssl: false, speed_score: 0, seo_score: 0 }
           )
