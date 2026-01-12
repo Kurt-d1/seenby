@@ -131,7 +131,7 @@ export async function POST(
       console.log("Analyzing competitor:", comp.name)
 
       var compGoogleData = await scanGoogleEnhanced(comp.place_id, apiKey)
-      var compSocialData = await analyzeSocialPresence(comp.name, compGoogleData?.website, "MT")
+var compSocialData = await analyzeSocialPresence(comp.name, compGoogleData?.website || null, "MT")
       var compWebsiteData = null
       if (compGoogleData?.website) {
         compWebsiteData = await quickWebsiteCheck(compGoogleData.website)
