@@ -231,7 +231,7 @@ export default function AuditPage() {
         setDirectories(function(prev) {
           return prev.map(function(dir) {
             if (dir.directory === "Google Business") {
-              return { ...dir, status: "found" as const, found_rating: business.rating || undefined }
+              return { ...dir, status: "found" as const, found_rating: business?.rating || undefined }
             }
             return dir
           })
