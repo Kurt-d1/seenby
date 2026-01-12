@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       })
     )
 
-    return new NextResponse(pdfBuffer, {
+return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": "attachment; filename=seenby-report.pdf"
