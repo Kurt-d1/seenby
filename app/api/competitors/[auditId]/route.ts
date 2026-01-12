@@ -39,10 +39,18 @@ export async function POST(
 
     console.log("Analyzing your business...")
     var yourGoogleData = await scanGoogleEnhanced(place_id, apiKey)
-    var yourSocialData = await analyzeSocialPresence(name, website ?? yourGoogleData?.website ?? null, "MT")
+    
+    var yourWebsiteParam: string | null = null
+    if (website) {
+      yourWebsiteParam = website
+    } else if (yourGoogleData && yourGoogleData.website) {
+      yourWebsiteParam = yourGoogleData.website
+    }
+    
+    var yourSocialData = await analyzeSocialPresence(name, yourWebsiteParam, "MT")
     var yourWebsiteData = null
-    if (website || yourGoogleData?.website) {
-      yourWebsiteData = await quickWebsiteCheck(website || yourGoogleData?.website || "")
+    if (yourWebsiteParam) {
+      yourWebsiteData = await quickWebsiteCheck(yourWebsiteParam)
     }
 
     var yourAnalysis = {
@@ -127,10 +135,16 @@ export async function POST(
       console.log("Analyzing competitor:", comp.name)
 
       var compGoogleData = await scanGoogleEnhanced(comp.place_id, apiKey)
-      var compSocialData = await analyzeSocialPresence(comp.name, compGoogleData?.website ?? null, "MT")
+      
+      var compWebsiteParam: string | null = null
+      if (compGoogleData && compGoogleData.website) {
+        compWebsiteParam = compGoogleData.website
+      }
+      
+      var compSocialData = await analyzeSocialPresence(comp.name, compWebsiteParam, "MT")
       var compWebsiteData = null
-      if (compGoogleData?.website) {
-        compWebsiteData = await quickWebsiteCheck(compGoogleData.website)
+      if (compWebsiteParam) {
+        compWebsiteData = await quickWebsiteCheck(compWebsiteParam)
       }
 
       var compAnalysis = {
