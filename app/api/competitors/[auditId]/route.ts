@@ -23,7 +23,6 @@ export async function POST(
       return NextResponse.json({ error: "API key not configured" }, { status: 500 })
     }
 
-    // Step 1: Create competitor analysis record
     var { data: analysis, error: analysisError } = await supabase
       .from("competitor_analyses")
       .insert({
@@ -38,7 +37,6 @@ export async function POST(
       return NextResponse.json({ error: "Failed to create analysis" }, { status: 500 })
     }
 
-    // Step 2: Run comprehensive analysis on YOUR business first
     console.log("Analyzing your business...")
     var yourGoogleData = await scanGoogleEnhanced(place_id, apiKey)
     var yourSocialData = await analyzeSocialPresence(name, website ?? yourGoogleData?.website ?? null, "MT")
@@ -78,7 +76,6 @@ export async function POST(
       overall_score: calculateComprehensiveScore(yourGoogleData, yourSocialData, yourWebsiteData)
     }
 
-    // Step 3: Build search query and find competitors
     var searchQuery = ""
     if (keywords && keywords.trim()) {
       searchQuery = keywords.trim()
@@ -123,7 +120,6 @@ export async function POST(
 
     console.log("Found", competitors.length, "competitors")
 
-    // Step 4: Run comprehensive analysis on each competitor
     var competitorAnalyses = []
 
     for (var j = 0; j < competitors.length; j++) {
@@ -170,7 +166,6 @@ export async function POST(
 
       competitorAnalyses.push(compAnalysis)
 
-      // Save to database
       await supabase
         .from("competitor_results")
         .insert({
@@ -186,12 +181,10 @@ export async function POST(
         })
     }
 
-    // Step 5: Calculate averages
     var avgScore = competitorAnalyses.length > 0 
       ? Math.round(competitorAnalyses.reduce(function(sum, c) { return sum + c.overall_score }, 0) / competitorAnalyses.length)
       : 0
 
-    // Step 6: Update analysis record
     await supabase
       .from("competitor_analyses")
       .update({
@@ -222,7 +215,6 @@ export async function POST(
 function calculateComprehensiveScore(google: any, social: any, website: any): number {
   var score = 0
 
-  // Google (35 points)
   if (google) {
     if (google.rating) score += Math.min(15, (google.rating / 5) * 15)
     if (google.review_count > 100) score += 10
@@ -236,12 +228,10 @@ function calculateComprehensiveScore(google: any, social: any, website: any): nu
     if (google.website) score += 5
   }
 
-  // Social (40 points)
   if (social) {
     score += Math.round(social.social_score * 0.4)
   }
 
-  // Website (25 points)
   if (website && website.accessible) {
     score += 10
     if (website.has_ssl) score += 5
