@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
-import { scanGoogleEnhanced, scanAllDirectories, calculateHealthScore } from "@/lib/directories"
+import { scanGoogleEnhanced, calculateHealthScore } from "@/lib/directories"
 import { analyzeSocialPresence } from "@/lib/social-analysis"
 import { quickWebsiteCheck } from "@/lib/website-analysis"
 
@@ -41,7 +41,7 @@ export async function POST(
     // Step 2: Run comprehensive analysis on YOUR business first
     console.log("Analyzing your business...")
     var yourGoogleData = await scanGoogleEnhanced(place_id, apiKey)
-    var yourSocialData = await analyzeSocialPresence(name, website || yourGoogleData?.website, "MT")
+    var yourSocialData = await analyzeSocialPresence(name, website ?? yourGoogleData?.website ?? null, "MT")
     var yourWebsiteData = null
     if (website || yourGoogleData?.website) {
       yourWebsiteData = await quickWebsiteCheck(website || yourGoogleData?.website || "")
@@ -131,7 +131,7 @@ export async function POST(
       console.log("Analyzing competitor:", comp.name)
 
       var compGoogleData = await scanGoogleEnhanced(comp.place_id, apiKey)
-var compSocialData = await analyzeSocialPresence(comp.name, compGoogleData?.website || null, "MT")
+      var compSocialData = await analyzeSocialPresence(comp.name, compGoogleData?.website ?? null, "MT")
       var compWebsiteData = null
       if (compGoogleData?.website) {
         compWebsiteData = await quickWebsiteCheck(compGoogleData.website)
